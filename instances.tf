@@ -25,7 +25,6 @@ locals {
   __instances = [
     for i, v in local._instances :
     merge(v, {
-      name   = lower(trimspace(coalesce(v.name, "${v.name_prefix}-${try(local.region_codes[v.region], "unknown")}")))
       image  = try(coalesce(v.image, v.os_project != null && v.os != null ? "${v.os_project}/${v.os}" : null), null)
       region = coalesce(v.region, v.zone != null ? trimsuffix(v.zone, substr(v.zone, -2, 2)) : local.region)
     }) if v.create
@@ -33,7 +32,7 @@ locals {
   ___instances = [
     for i, v in local.__instances :
     merge(v, {
-      #zone      = coalesce(v.zone, "${v.region}-${element(local.zones, i)}")
+      name = lower(trimspace(coalesce(v.name, "${v.name_prefix}-${try(local.region_codes[v.region], "error")}")))
       zone = coalesce(
         v.zone,
         try(data.google_compute_zones.available[v.index_key].names, null),

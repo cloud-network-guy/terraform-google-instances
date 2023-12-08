@@ -23,7 +23,7 @@ variable "instances" {
     name                      = optional(string)
     name_prefix               = optional(string)
     description               = optional(string)
-    region                    = string
+    region                    = optional(string)
     zone                      = optional(string)
     network_name              = optional(string)
     subnet_name               = optional(string)
