@@ -51,7 +51,7 @@ locals {
       name = lower(trimspace(coalesce(v.name, "${v.name_prefix}-${try(local.region_codes[v.region], "error")}")))
       zone = coalesce(
         v.zone,
-        try(data.google_compute_zones.available[v.region].names, null),
+        try(element(data.google_compute_zones.available[v.region].names, 0), null),
         "${v.region}-${element(["b", "c"], i)}"
       )
       subnet_id = "projects/${v.network_project_id}/regions/${v.region}/subnetworks/${v.subnet_name}"
