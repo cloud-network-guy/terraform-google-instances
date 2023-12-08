@@ -40,15 +40,4 @@ locals {
   }
 }
 
-# Get a list of available zones for each region
-locals {
-  regions = toset(flatten(concat(
-    [for i, v in local._instances : v.region if v.zone == null],
-    [for i, v in local._migs : v.region]
-  )))
-}
-data "google_compute_zones" "available" {
-  for_each = local.regions
-  project  = var.project_id
-  region   = each.value
-}
+
