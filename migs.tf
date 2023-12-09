@@ -3,7 +3,7 @@ locals {
     merge(v, {
       create                                = coalesce(v.create, true)
       project_id                            = coalesce(v.project_id, var.project_id)
-      host_project_id                       = coalesce(v.host_project_id, var.host_project_id, v.project_id, var.project_id)
+      #host_project_id                       = coalesce(v.host_project_id, var.host_project_id, v.project_id, var.project_id)
       base_instance_name                    = coalesce(v.base_instance_name, v.name_prefix)
       region                                = coalesce(v.region, var.region)
       distribution_target_shape             = upper(coalesce(v.distribution_policy_target_shape, "EVEN"))
