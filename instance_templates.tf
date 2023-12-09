@@ -6,6 +6,7 @@ locals {
       host_project_id        = coalesce(v.host_project_id, var.host_project_id, v.project_id, var.project_id)
       name_prefix            = lower(trimspace(coalesce(v.name_prefix, "template-${i + 1}")))
       network                = coalesce(v.network, "default")
+      subnet                  = coalesce(v.subnet, "default")
       can_ip_forward         = coalesce(v.can_ip_forward, false)
       disk_boot              = coalesce(v.disk_boot, true)
       disk_auto_delete       = coalesce(v.disk_auto_delete, true)
@@ -24,7 +25,7 @@ locals {
       tags               = v.network_tags
       network            = "projects/${v.host_project_id}/global/networks/${v.network}"
       subnetwork_project = v.host_project_id
-      subnetwork         = coalesce(v.subnet, "default")
+      subnetwork         = startswith("projects/", v.subnet) ? v.subnet : "projects/${v.host_project_id}/regions/${v.region}/subnetworks/${v.subnet}" c
       source_image       = coalesce(v.image, "${v.os_project}/${v.os}")
       index_key          = "${v.project_id}/${v.name_prefix}"
     }) if v.create

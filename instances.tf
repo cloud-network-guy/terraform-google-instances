@@ -8,7 +8,7 @@ locals {
       name_prefix               = coalesce(v.name_prefix, "instance-${i}")
       region                    = try(coalesce(v.region, v.zone == null ? local.region : null), null)
       network                   = coalesce(v.network, "default")
-      subnetwork                = coalesce(v.subnet, "default")
+      subnet                    = coalesce(v.subnet, "default")
       os_project                = try(coalesce(v.os_project, v.image == null ? local.os_project : null), null)
       os                        = try(coalesce(v.os, v.image == null ? local.os : null), null)
       machine_type              = coalesce(v.machine_type, local.machine_type)
@@ -119,6 +119,7 @@ locals {
       tags               = v.network_tags
       network            = "projects/${v.host_project_id}/global/networks/${v.network}"
       subnetwork_project = v.host_project_id
+      subnetwork         = startswith("projects/", v.subnet) ? v.subnet : "projects/${v.host_project_id}/regions/${v.region}/subnetworks/${v.subnet}"
       index_key          = "${v.project_id}/${v.zone}/${v.name}"
     }) if v.create == true
   ]
