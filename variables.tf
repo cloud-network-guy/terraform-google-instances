@@ -8,7 +8,7 @@ variable "region" {
   description = "Default GCP Region Name (can be overridden at resource level)"
   default     = null
 }
-variable "network_project_id" {
+variable "host_project_id" {
   type        = string
   description = "Default Shared VPC Host Project (can be overridden at resource level)"
   default     = null
@@ -19,14 +19,14 @@ variable "instances" {
   type = list(object({
     create                    = optional(bool, true)
     project_id                = optional(string)
-    network_project_id        = optional(string)
+    host_project_id           = optional(string)
     name                      = optional(string)
     name_prefix               = optional(string)
     description               = optional(string)
     region                    = optional(string)
     zone                      = optional(string)
-    network_name              = optional(string)
-    subnet_name               = optional(string)
+    network                   = optional(string)
+    subnet                    = optional(string)
     machine_type              = optional(string)
     boot_disk_type            = optional(string)
     boot_disk_size            = optional(number)
@@ -61,15 +61,14 @@ variable "instance_templates" {
   type = list(object({
     create                 = optional(bool, true)
     project_id             = optional(string)
-    network_project_id     = optional(string)
+    host_project_id     = optional(string)
     name_prefix            = optional(string)
     name                   = optional(string)
     description            = optional(string)
     region                 = string
     zone                   = optional(string)
-    network_name           = optional(string)
     network                = optional(string)
-    subnet_name            = optional(string)
+    subnet            = optional(string)
     machine_type           = optional(string)
     disk_boot              = optional(bool)
     disk_auto_delete       = optional(bool)
@@ -96,7 +95,7 @@ variable "migs" {
   type = list(object({
     create                              = optional(bool, true)
     project_id                          = optional(string)
-    network_project_id                  = optional(string)
+    #host_project_id                  = optional(string)
     name                                = optional(string)
     name_prefix                         = optional(string)
     base_instance_name                  = optional(string)
@@ -128,9 +127,8 @@ variable "umigs" {
   type = list(object({
     create             = optional(bool, true)
     project_id         = optional(string)
-    network_project_id = optional(string)
+    host_project_id = optional(string)
     name               = optional(string)
-    network_name       = optional(string)
     network            = optional(string)
     zone               = string
     instances          = optional(list(string))

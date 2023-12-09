@@ -3,7 +3,7 @@ locals {
     merge(v, {
       create                 = coalesce(v.create, true)
       project_id             = coalesce(v.project_id, v.project_id)
-      network_project_id     = coalesce(v.network_project_id, var.network_project_id, v.project_id, var.project_id)
+      host_project_id        = coalesce(v.host_project_id, var.host_project_id, v.project_id, var.project_id)
       name_prefix            = lower(trimspace(coalesce(v.name_prefix, "template-${i + 1}")))
       network                = coalesce(v.network_name, v.network, "default")
       can_ip_forward         = coalesce(v.can_ip_forward, false)
@@ -21,9 +21,12 @@ locals {
   ]
   instance_templates = [for i, v in local._instance_templates :
     merge(v, {
-      network      = "projects/${v.network_project_id}/global/networks/${v.network}"
-      source_image = coalesce(v.image, "${v.os_project}/${v.os}")
-      index_key    = "${v.project_id}/${v.name_prefix}"
+      tags               = v.network_tags
+      network            = "projects/${v.host_project_id}/global/networks/${v.network}"
+      subnetwork_project = v.host_project_id
+      subnetwork         = coalesce(v.subnet, "default")
+      source_image       = coalesce(v.image, "${v.os_project}/${v.os}")
+      index_key          = "${v.project_id}/${v.name_prefix}"
     }) if v.create
   ]
 }
@@ -35,7 +38,7 @@ resource "google_compute_instance_template" "default" {
   description             = each.value.description
   machine_type            = each.value.machine_type
   labels                  = each.value.labels
-  tags                    = each.value.network_tags
+  tags                    = each.value.tags
   metadata                = each.value.metadata
   metadata_startup_script = each.value.startup_script
   can_ip_forward          = each.value.can_ip_forward
@@ -48,8 +51,8 @@ resource "google_compute_instance_template" "default" {
   }
   network_interface {
     network            = each.value.network
-    subnetwork_project = each.value.network_project_id
-    subnetwork         = each.value.subnet_name
+    subnetwork_project = each.value.subnetwork_project
+    subnetwork         = each.value.subnetwork
     queue_count        = 0
   }
   service_account {
