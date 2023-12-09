@@ -54,7 +54,6 @@ locals {
         try(element(data.google_compute_zones.available[v.region].names, 0), null),
         "${v.region}-${element(["b", "c"], i)}"
       )
-      #subnet_id = "projects/${v.network_project_id}/regions/${v.region}/subnetworks/${v.subnet_name}"
       nat_ips = flatten([for nat_ip_name in v.nat_ip_names :
         {
           project_id  = v.project_id
@@ -117,7 +116,6 @@ locals {
   ]
   instances = [for i, v in local.____instances :
     merge(v, {
-      #subnet_id = "projects/${v.network_project_id}/regions/${v.region}/subnetworks/${v.subnet_name}"
       tags               = v.network_tags
       network            = "projects/${v.host_project_id}/global/networks/${v.network}"
       subnetwork_project = v.host_project_id
@@ -150,7 +148,7 @@ resource "google_compute_instance" "default" {
     }
   }
   dynamic "network_interface" {
-    for_each = each.value.network != null && each.value.subnet_name != null ? [true] : []
+    for_each = each.value.network != null && each.value.subnet != null ? [true] : []
     content {
       network            = each.value.network
       subnetwork_project = each.value.subnetwork_project

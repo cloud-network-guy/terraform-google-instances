@@ -61,14 +61,14 @@ variable "instance_templates" {
   type = list(object({
     create                 = optional(bool, true)
     project_id             = optional(string)
-    host_project_id     = optional(string)
+    host_project_id        = optional(string)
     name_prefix            = optional(string)
     name                   = optional(string)
     description            = optional(string)
     region                 = string
     zone                   = optional(string)
     network                = optional(string)
-    subnet            = optional(string)
+    subnet                 = optional(string)
     machine_type           = optional(string)
     disk_boot              = optional(bool)
     disk_auto_delete       = optional(bool)
@@ -93,8 +93,8 @@ variable "instance_templates" {
 variable "migs" {
   description = "List of Managed Instance Groups"
   type = list(object({
-    create                              = optional(bool, true)
-    project_id                          = optional(string)
+    create     = optional(bool, true)
+    project_id = optional(string)
     #host_project_id                  = optional(string)
     name                                = optional(string)
     name_prefix                         = optional(string)
@@ -125,13 +125,13 @@ variable "migs" {
 variable "umigs" {
   description = "List of Unmanaged Instance Groups"
   type = list(object({
-    create             = optional(bool, true)
-    project_id         = optional(string)
+    create          = optional(bool, true)
+    project_id      = optional(string)
     host_project_id = optional(string)
-    name               = optional(string)
-    network            = optional(string)
-    zone               = string
-    instances          = optional(list(string))
+    name            = optional(string)
+    network         = optional(string)
+    zone            = string
+    instances       = optional(list(string))
     named_ports = optional(list(object({
       name = string
       port = number
