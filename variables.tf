@@ -93,13 +93,13 @@ variable "instance_templates" {
 variable "migs" {
   description = "List of Managed Instance Groups"
   type = list(object({
-    create     = optional(bool, true)
-    project_id = optional(string)
-    #host_project_id                  = optional(string)
+    create                              = optional(bool, true)
+    project_id                          = optional(string)
     name                                = optional(string)
     name_prefix                         = optional(string)
     base_instance_name                  = optional(string)
     region                              = string
+    target_size                         = optional(number)
     update_instance_redistribution_type = optional(string)
     distribution_policy_target_shape    = optional(string)
     update_type                         = optional(string)

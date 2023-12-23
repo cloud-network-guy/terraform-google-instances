@@ -6,7 +6,7 @@ output "instances" {
       name         = try(google_compute_instance.default[v.index_key].name, null)
       machine_type = try(google_compute_instance.default[v.index_key].machine_type, null)
       zone         = try(google_compute_instance.default[v.index_key].zone, null)
-      subnet_id    = try(google_compute_instance.default[v.index_key].network_interface.0.subnetwork, null)
+      subnetwork   = try(google_compute_instance.default[v.index_key].network_interface.0.subnetwork, null)
       internal_ip  = try(google_compute_instance.default[v.index_key].network_interface.0.network_ip, null)
     }
   ]
