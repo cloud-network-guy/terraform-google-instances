@@ -8,6 +8,7 @@ output "instances" {
       zone         = try(google_compute_instance.default[v.index_key].zone, null)
       subnetwork   = try(google_compute_instance.default[v.index_key].network_interface.0.subnetwork, null)
       internal_ip  = try(google_compute_instance.default[v.index_key].network_interface.0.network_ip, null)
+      external_ip  = try(google_compute_instance.default[v.index_key].network_interface.0.access_config.nat_ip, null)
     }
   ]
 }
