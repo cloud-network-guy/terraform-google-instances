@@ -39,7 +39,7 @@ locals {
       update_max_surge_fixed       = length(v.zones)
       index_key                    = "${v.project_id}/${v.region}/${v.name}"
       instance_template_key        = "${v.project_id}/${v.name_prefix}"
-    }) if v.create
+    }) if v.create == true
   ]
 }
 

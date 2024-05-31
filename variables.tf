@@ -150,14 +150,18 @@ variable "negs" {
     type            = optional(string)
     region          = optional(string)
     zone            = optional(string)
-    instance        = optional(string)
     network         = optional(string)
     subnet          = optional(string)
-    fqdn            = optional(string)
-    ip_address      = optional(string)
     protocol        = optional(string)
-    port            = optional(number)
-    psc_target      = optional(string)
+    default_port    = optional(number)
+    endpoints = optional(list(object({
+      instance   = optional(string)
+      fqdn       = optional(string)
+      ip_address = optional(string)
+      protocol   = optional(string)
+      port       = optional(number)
+      psc_target = optional(string)
+    })))
   }))
   default = []
 }

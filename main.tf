@@ -1,5 +1,6 @@
 
 locals {
+  url_prefix             = "https://www.googleapis.com/compute/v1"
   region                 = "us-central1" # only if neither region nor zone were specified
   machine_type           = "e2-micro"    # because it's the cheapest
   os_project             = "debian-cloud"

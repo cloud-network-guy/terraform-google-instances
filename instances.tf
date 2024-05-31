@@ -1,6 +1,5 @@
 locals {
-  _instances = [
-    for i, v in var.instances :
+  _instances = [for i, v in var.instances :
     merge(v, {
       create                    = coalesce(v.create, true)
       project_id                = coalesce(v.project_id, var.project_id)
@@ -22,12 +21,11 @@ locals {
       nat_ip_names              = coalesce(v.nat_ip_names, [])
     })
   ]
-  __instances = [
-    for i, v in local._instances :
+  __instances = [for i, v in local._instances :
     merge(v, {
       image  = try(coalesce(v.image, v.os_project != null && v.os != null ? "${v.os_project}/${v.os}" : null), null)
       region = coalesce(v.region, v.zone != null ? trimsuffix(v.zone, substr(v.zone, -2, 2)) : local.region)
-    }) if v.create
+    }) if v.create == true
   ]
 }
 
@@ -45,8 +43,7 @@ data "google_compute_zones" "available" {
 }
 
 locals {
-  ___instances = [
-    for i, v in local.__instances :
+  ___instances = [for i, v in local.__instances :
     merge(v, {
       name = lower(trimspace(coalesce(v.name, "${v.name_prefix}-${try(local.region_codes[v.region], "error")}")))
       zone = coalesce(
