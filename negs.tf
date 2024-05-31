@@ -61,6 +61,14 @@ locals {
       ]
     }) if v.create == true
   ]
+  gneg_endpoints = flatten([for i, v in local.gnegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
+
 }
 
 # Global Network Endpoint Groups
@@ -77,7 +85,7 @@ resource "google_compute_global_network_endpoint_group" "default" {
 }
 # Global Network Endpoints
 resource "google_compute_global_network_endpoint" "default" {
-  for_each                      = { for i, v in local.gnegs.endpoints : v.index_key => v }
+  for_each                      = { for i, v in local.gneg_endpoints : v.index_key => v }
   project                       = each.value.project_id
   global_network_endpoint_group = google_compute_global_network_endpoint_group.default[each.value.group_index_key].id
   fqdn                          = each.value.fqdn
@@ -103,14 +111,15 @@ locals {
     merge(v, {
       network    = v.is_psc ? null : v.network
       subnetwork = v.is_psc ? v.subnetwork : null
-      endpoints = [for e in v.endpoints :
-        merge(e, {
-          #index_key       = "${e.project_id}/${v.name}/${try(coalesce(e.ip_address), "")}/${try(coalesce(e.fqdn), "")}/${e.port}"
-          group_index_key = v.index_key
-        })
-      ]
     }) if v.create == true
   ]
+  rneg_endpoints = flatten([for i, v in local.rnegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
 }
 # Regional Network Endpoint Group
 resource "null_resource" "rnegs" {
@@ -135,7 +144,7 @@ resource "google_compute_region_network_endpoint_group" "default" {
 }
 # Regional Network Endpoints
 resource "google_compute_region_network_endpoint" "default" {
-  for_each                      = { for i, v in local.rnegs.endpoints : v.index_key => v }
+  for_each                      = { for i, v in local.rneg_endpoints : v.index_key => v }
   project                       = each.value.project_id
   region_network_endpoint_group = google_compute_region_network_endpoint_group.default[each.value.group_index_key].id
   fqdn                          = each.value.fqdn
@@ -158,16 +167,15 @@ locals {
       index_key = "${v.project_id}/${v.zone}/${v.name}"
     }) if v.zone != null
   ]
-  znegs = [for i, v in local._znegs :
-    merge(v, {
-      endpoints = [for e in v.endpoints :
-        merge(e, {
-          #index_key       = "${e.project_id}/${v.name}/${try(coalesce(e.ip_address), "")}/${try(coalesce(e.fqdn), "")}/${e.port}"
-          group_index_key = v.index_key
-        })
-      ]
-    }) if v.create == true
-  ]
+  znegs = [for i, v in local._znegs : v if v.create == true]
+  zneg_endpoints = flatten([for i, v in local.znegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
+
 }
 # Zonal Network Endpoint Group
 resource "null_resource" "znegs" {
@@ -186,7 +194,7 @@ resource "google_compute_network_endpoint_group" "default" {
 }
 # Zonal Network Endpoint
 resource "google_compute_network_endpoint" "default" {
-  for_each               = { for i, v in local.znegs : v.index_key => v }
+  for_each               = { for i, v in local.zneg_endpoints : v.index_key => v }
   project                = each.value.project_id
   network_endpoint_group = google_compute_network_endpoint_group.default[each.value.group_index_key].id
   zone                   = each.value.zone
