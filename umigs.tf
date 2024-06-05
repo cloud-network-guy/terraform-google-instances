@@ -1,6 +1,6 @@
 locals {
   _umigs = flatten(concat(
-    [for i, v in var.umigs :
+    [for i, v in coalesce(var.umigs, []) :
       merge(v, {
         create          = coalesce(v.create, true)
         project_id      = coalesce(v.project_id, var.project_id)

@@ -1,6 +1,6 @@
 
 locals {
-  _negs = [for i, v in var.negs :
+  _negs = [for i, v in coalesce(var.negs, []) :
     merge(v, {
       create          = coalesce(v.create, true)
       project_id      = coalesce(v.project_id, var.project_id)
@@ -20,29 +20,32 @@ locals {
       is_regional = v.zone != null ? true : false
       network     = startswith(v.network, local.url_prefix) ? replace(v.network, local.url_prefix, "") : v.network
       subnetwork  = startswith(v.subnet, local.url_prefix) ? replace(v.subnet, local.url_prefix, "") : v.subnet
-      endpoints = [for e in coalesce(v.endpoints, []) :
+      endpoints = flatten([for e in coalesce(v.endpoints, []) :
         merge(e, {
           project_id = v.project_id
           fqdn       = lookup(e, "fqdn", v.fqdn)
           ip_address = lookup(e, "ip_address", v.ip_address)
           port       = lookup(e, "port", v.default_port)
         })
-      ]
+      ])
     })
   ]
   negs = [for i, v in local.__negs :
     merge(v, {
       network    = startswith(v.network, "projects/") ? v.network : "projects/${v.host_project_id}/global/networks/${v.network}"
       subnetwork = startswith(v.subnet, "projects/") ? v.subnet : "projects/${v.host_project_id}/regions/${v.region}/subnetworks/${v.subnet}"
-      network_endpoint_type = one(coalescelist(
-        set([for e in v.endpoints : "INTERNET_FQDN_PORT" if e.fqdn != null]),
-        set([for e in v.endpoints : "INTERNET_IP_PORT" if e.ip_address != null]),
-        ["UNKNOWN"]
-      ))
+      network_endpoint_type = coalesce(
+        v.fqdn != null ? "INTERNET_FQDN_PORT" : null,
+        v.ip_address != null ? "INTERNET_IP_PORT" : null,
+        length([for e in v.endpoints : e if e.fqdn != null]) > 0 ? "INTERNET_FQDN_PORT" : null,
+        length([for e in v.endpoints : e if e.ip_address != null]) > 0 ? "INTERNET_IP_PORT" : null,
+        "UNKNOWN"
+      )
     }) if v.create == true
   ]
 }
 
+# Global Network Endpoint Groups
 locals {
   _gnegs = [for i, v in local.negs :
     merge(v, {
@@ -61,17 +64,7 @@ locals {
       ]
     }) if v.create == true
   ]
-  gneg_endpoints = flatten([for i, v in local.gnegs :
-    [for e in v.endpoints :
-      merge(e, {
-        group_index_key = v.index_key
-      })
-    ]
-  ])
-
 }
-
-# Global Network Endpoint Groups
 resource "null_resource" "gnegs" {
   for_each = { for i, v in local.gnegs : v.index_key => true }
 }
@@ -83,7 +76,17 @@ resource "google_compute_global_network_endpoint_group" "default" {
   default_port          = each.value.default_port
   depends_on            = [null_resource.gnegs]
 }
+
 # Global Network Endpoints
+locals {
+  gneg_endpoints = flatten([for i, v in local.gnegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
+}
 resource "google_compute_global_network_endpoint" "default" {
   for_each                      = { for i, v in local.gneg_endpoints : v.index_key => v }
   project                       = each.value.project_id
@@ -93,6 +96,7 @@ resource "google_compute_global_network_endpoint" "default" {
   port                          = each.value.port
 }
 
+# Regional Network Endpoint Groups
 locals {
   _rnegs = [for i, v in local.negs :
     merge(v, {
@@ -113,15 +117,7 @@ locals {
       subnetwork = v.is_psc ? v.subnetwork : null
     }) if v.create == true
   ]
-  rneg_endpoints = flatten([for i, v in local.rnegs :
-    [for e in v.endpoints :
-      merge(e, {
-        group_index_key = v.index_key
-      })
-    ]
-  ])
 }
-# Regional Network Endpoint Group
 resource "null_resource" "rnegs" {
   for_each = { for i, v in local.rnegs : v.index_key => true }
 }
@@ -142,7 +138,17 @@ resource "google_compute_region_network_endpoint_group" "default" {
   }
   depends_on = [null_resource.rnegs]
 }
+
 # Regional Network Endpoints
+locals {
+  rneg_endpoints = flatten([for i, v in local.rnegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
+}
 resource "google_compute_region_network_endpoint" "default" {
   for_each                      = { for i, v in local.rneg_endpoints : v.index_key => v }
   project                       = each.value.project_id
@@ -154,6 +160,10 @@ resource "google_compute_region_network_endpoint" "default" {
   depends_on                    = [null_resource.rnegs]
 }
 
+# Zonal Network Endpoint Groups
+resource "null_resource" "znegs" {
+  for_each = { for i, v in local.znegs : v.index_key => true }
+}
 locals {
   _znegs = [for i, v in local.negs :
     merge(v, {
@@ -168,18 +178,6 @@ locals {
     }) if v.zone != null
   ]
   znegs = [for i, v in local._znegs : v if v.create == true]
-  zneg_endpoints = flatten([for i, v in local.znegs :
-    [for e in v.endpoints :
-      merge(e, {
-        group_index_key = v.index_key
-      })
-    ]
-  ])
-
-}
-# Zonal Network Endpoint Group
-resource "null_resource" "znegs" {
-  for_each = { for i, v in local.znegs : v.index_key => true }
 }
 resource "google_compute_network_endpoint_group" "default" {
   for_each              = { for i, v in local.znegs : v.index_key => v }
@@ -192,7 +190,17 @@ resource "google_compute_network_endpoint_group" "default" {
   default_port          = each.value.default_port
   depends_on            = [null_resource.znegs]
 }
-# Zonal Network Endpoint
+
+# Zonal Network Endpoints
+locals {
+  zneg_endpoints = flatten([for i, v in local.znegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
+}
 resource "google_compute_network_endpoint" "default" {
   for_each               = { for i, v in local.zneg_endpoints : v.index_key => v }
   project                = each.value.project_id
