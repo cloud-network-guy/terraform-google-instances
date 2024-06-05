@@ -64,6 +64,14 @@ locals {
       ]
     }) if v.create == true
   ]
+  gneg_endpoints = flatten([for i, v in local.gnegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
+
 }
 resource "null_resource" "gnegs" {
   for_each = { for i, v in local.gnegs : v.index_key => true }
@@ -117,6 +125,13 @@ locals {
       subnetwork = v.is_psc ? v.subnetwork : null
     }) if v.create == true
   ]
+  rneg_endpoints = flatten([for i, v in local.rnegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
 }
 resource "null_resource" "rnegs" {
   for_each = { for i, v in local.rnegs : v.index_key => true }
@@ -178,6 +193,21 @@ locals {
     }) if v.zone != null
   ]
   znegs = [for i, v in local._znegs : v if v.create == true]
+<<<<<<< HEAD
+=======
+  zneg_endpoints = flatten([for i, v in local.znegs :
+    [for e in v.endpoints :
+      merge(e, {
+        group_index_key = v.index_key
+      })
+    ]
+  ])
+
+}
+# Zonal Network Endpoint Group
+resource "null_resource" "znegs" {
+  for_each = { for i, v in local.znegs : v.index_key => true }
+>>>>>>> f6ba3a8391f711be3fa137bd887109dec4d68988
 }
 resource "google_compute_network_endpoint_group" "default" {
   for_each              = { for i, v in local.znegs : v.index_key => v }
