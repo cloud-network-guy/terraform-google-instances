@@ -13,18 +13,6 @@ output "instances" {
   ]
 }
 
-output "gnegs" {
-  description = "Global Network Endpoint Groups"
-  value = [for i, v in local.gnegs :
-    {
-      index_key = v.index_key
-      id        = try(google_compute_global_network_endpoint_group.default[v.index_key].id, null)
-      self_link = try(google_compute_global_network_endpoint_group.default[v.index_key].self_link, null)
-      name      = try(google_compute_global_network_endpoint_group.default[v.index_key].name, null)
-    }
-  ]
-}
-
 output "migs" {
   description = "Managed Instance Groups"
   value = [for i, v in local.migs :

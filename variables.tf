@@ -140,33 +140,3 @@ variable "umigs" {
   default = []
 }
 
-variable "negs" {
-  description = "List of Network Endpoint Groups"
-  type = list(object({
-    create            = optional(bool, true)
-    project_id        = optional(string)
-    host_project_id   = optional(string)
-    name              = optional(string)
-    name_prefix       = optional(string)
-    type              = optional(string)
-    region            = optional(string)
-    zone              = optional(string)
-    network           = optional(string)
-    subnet            = optional(string)
-    fqdn              = optional(string)
-    ip_address        = optional(string)
-    protocol          = optional(string)
-    default_port      = optional(number)
-    psc_target        = optional(string)
-    cloud_run_service = optional(string)
-    endpoints = optional(list(object({
-      instance   = optional(string)
-      fqdn       = optional(string)
-      ip_address = optional(string)
-      protocol   = optional(string)
-      port       = optional(number)
-      psc_target = optional(string)
-    })))
-  }))
-  default = []
-}
