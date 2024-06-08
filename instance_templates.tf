@@ -2,7 +2,7 @@ locals {
   _instance_templates = [for i, v in var.instance_templates :
     merge(v, {
       create                 = coalesce(v.create, true)
-      project_id             = coalesce(v.project_id, v.project_id)
+      project_id             = coalesce(v.project_id, var.project_id)
       host_project_id        = coalesce(v.host_project_id, var.host_project_id, v.project_id, var.project_id)
       name_prefix            = lower(trimspace(coalesce(v.name_prefix, "template-${i + 1}")))
       network                = coalesce(v.network, "default")
